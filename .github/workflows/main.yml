@@ -52,15 +52,9 @@ jobs:
 
     - name: Type check
       run: pnpm run type-check
-      continue-on-error: true
 
-    - name: Build Vite frontend
-      run: pnpm run build:vite
-      env:
-        NODE_ENV: production
-
-    - name: Build Electron app
-      run: pnpm run build:electron
+    - name: Build application
+      run: pnpm run build
       env:
         NODE_ENV: production
 
