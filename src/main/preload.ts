@@ -10,6 +10,9 @@ const api = {
     listVersions: () => ipcRenderer.invoke('minecraft:listVersions'),
     installLoader: (instanceId: string, loader: string, version: string) =>
       ipcRenderer.invoke('minecraft:installLoader', instanceId, loader, version)
+  },
+  system: {
+    getInfo: () => ipcRenderer.invoke('system:getInfo')
   }
 }
 

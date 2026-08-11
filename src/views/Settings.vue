@@ -147,7 +147,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import os from 'os'
 
 const settings = ref({
   javaPath: '',
@@ -162,14 +161,25 @@ const settings = ref({
 })
 
 const saving = ref(false)
-const javaVersion = ref('OpenJDK 21.0')
-const totalRam = ref((os.totalmem() / (1024 ** 3)).toFixed(1))
+const javaVersion = ref('Auto-detected')
+const totalRam = ref('N/A')
 
-onMounted(() => {
+onMounted(async () => {
   // Load settings from localStorage if available
   const saved = localStorage.getItem('launcherSettings')
   if (saved) {
     settings.value = JSON.parse(saved)
+  }
+
+  // Fetch system info via IPC (main process has access to os module)
+  try {
+    const info = await window.electron?.system?.getInfo?.()
+    if (info) {
+      totalRam.value = info.totalRamGB
+      javaVersion.value = info.javaVersion
+    }
+  } catch {
+    // IPC not wired yet, defaults will show
   }
 })
 

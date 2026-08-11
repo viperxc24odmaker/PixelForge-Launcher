@@ -11,8 +11,9 @@
     "dev": "concurrently \"npm run dev:vite\" \"wait-on http://localhost:5173 && npm run dev:electron\"",
     "dev:vite": "vite",
     "dev:electron": "electron .",
-    "build": "npm run build:vite && npm run build:electron",
+    "build": "npm run build:vite && npm run build:main && npm run build:electron",
     "build:vite": "vite build",
+    "build:main": "tsc -p tsconfig.main.json",
     "build:electron": "electron-builder -w",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit"

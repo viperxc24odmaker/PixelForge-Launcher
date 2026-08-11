@@ -1,6 +1,8 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { isDev } from './utils'
 import path from 'path'
+import os from 'os'
+import { spawnSync } from 'child_process'
 import {
   launchMinecraft,
   getInstances,
@@ -112,6 +114,33 @@ ipcMain.handle('minecraft:installLoader', async (event, instanceId: string, load
   try {
     const success = await installLoader(instanceId, loader as 'forge' | 'fabric', version)
     return { success, message: success ? `${loader} installed` : `Failed to install ${loader}` }
+  } catch (error) {
+    return { success: false, error: (error as Error).message }
+  }
+})
+
+// System info handler (safe place for Node 'os' module access)
+ipcMain.handle('system:getInfo', async () => {
+  try {
+    const totalRamGB = (os.totalmem() / 1024 ** 3).toFixed(1)
+
+    let javaVersion = 'Not detected'
+    try {
+      const result = spawnSync('java', ['-version'], { encoding: 'utf-8' })
+      const output = result.stderr || result.stdout || ''
+      const match = output.match(/version "(.+?)"/)
+      javaVersion = match ? match[1] : 'Detected (version unknown)'
+    } catch {
+      javaVersion = 'Not detected'
+    }
+
+    return {
+      success: true,
+      totalRamGB,
+      javaVersion,
+      platform: process.platform,
+      arch: process.arch
+    }
   } catch (error) {
     return { success: false, error: (error as Error).message }
   }
