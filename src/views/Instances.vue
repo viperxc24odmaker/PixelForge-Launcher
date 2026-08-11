@@ -77,11 +77,11 @@
           <v-card-title class="d-flex justify-space-between align-center pb-2">
             <span class="text-truncate">{{ instance.name }}</span>
             <v-chip
-              :label="instance.loader"
+              label
               size="small"
               :color="instance.loader === 'vanilla' ? 'success' : instance.loader === 'forge' ? 'warning' : 'info'"
               variant="elevated"
-            ></v-chip>
+            >{{ instance.loader }}</v-chip>
           </v-card-title>
           <v-card-subtitle class="text-secondary">v{{ instance.version }}</v-card-subtitle>
           <v-card-text class="flex-grow-1">
