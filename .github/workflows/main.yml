@@ -1,0 +1,107 @@
+name: Build PixelForge Launcher
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Windows Installer
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        node-version: [ 22.x ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 9.x
+
+    - name: Get pnpm store directory
+      id: pnpm-cache
+      shell: bash
+      run: |
+        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+    - name: Setup pnpm cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Type check
+      run: pnpm run type-check
+      continue-on-error: true
+
+    - name: Build Vite frontend
+      run: pnpm run build:vite
+      env:
+        NODE_ENV: production
+
+    - name: Build Electron app
+      run: pnpm run build:electron
+      env:
+        NODE_ENV: production
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: PixelForge-Launcher-Windows-x64
+        path: release/
+        retention-days: 30
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: release/**/*.exe
+        draft: false
+        prerelease: false
+        body: |
+          ## PixelForge Launcher Release
+          
+          ### Download
+          - **Windows x64**: `PixelForge-Launcher-x64.exe`
+          
+          ### Changes
+          See commit history for details.
+          
+          ### Installation
+          1. Download the `.exe` file
+          2. Run the installer
+          3. Follow the setup wizard
+          
+          ### Requirements
+          - Windows 10 or later
+          - Java 11+ (Java 21 recommended)
+          - 2GB+ disk space
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build Status Notification
+      if: always()
+      run: |
+        echo "Build Status: ${{ job.status }}"
+        echo "Artifacts: release/"
