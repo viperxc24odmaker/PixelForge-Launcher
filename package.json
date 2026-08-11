@@ -76,7 +76,20 @@
   },
   "pnpm": {
     "overrides": {
-      "@xmcl/unzip": "^2.1.2"
+      "@xmcl/unzip": "*",
+      "@xmcl/nbt": "*",
+      "@xmcl/system": "*",
+      "@xmcl/semver": "*",
+      "@xmcl/bytebuffer": "*",
+      "@xmcl/task": "*",
+      "@xmcl/file-transfer": "*",
+      "@xmcl/nat-api": "*",
+      "@xmcl/client": "*",
+      "@xmcl/model": "*",
+      "@xmcl/gamesetting": "*",
+      "@xmcl/text-component": "*",
+      "@xmcl/mod-parser": "*",
+      "@xmcl/forge-site-parser": "*"
     }
   }
 }
