@@ -73,6 +73,11 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     }
+  },
+  "pnpm": {
+    "overrides": {
+      "@xmcl/unzip": "^2.1.2"
+    }
   }
 }
 
