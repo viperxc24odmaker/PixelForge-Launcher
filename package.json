@@ -18,14 +18,8 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@xmcl/core": "^2.0.0",
-    "@xmcl/curseforge": "^2.0.0",
-    "@xmcl/game-data": "^1.0.0",
+    "@xmcl/core": "2.15.1",
     "@xmcl/installer": "6.1.2",
-    "@xmcl/modrinth": "^2.0.0",
-    "@xmcl/nbt": "^3.0.0",
-    "@xmcl/resourcepack": "^1.0.0",
-    "@xmcl/user": "^4.0.0",
     "vue": "^3.5.0",
     "vue-router": "^4.4.0",
     "pinia": "^2.2.0",
@@ -72,24 +66,6 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
-    }
-  },
-  "pnpm": {
-    "overrides": {
-      "@xmcl/unzip": "*",
-      "@xmcl/nbt": "*",
-      "@xmcl/system": "*",
-      "@xmcl/semver": "*",
-      "@xmcl/bytebuffer": "*",
-      "@xmcl/task": "*",
-      "@xmcl/file-transfer": "*",
-      "@xmcl/nat-api": "*",
-      "@xmcl/client": "*",
-      "@xmcl/model": "*",
-      "@xmcl/gamesetting": "*",
-      "@xmcl/text-component": "*",
-      "@xmcl/mod-parser": "*",
-      "@xmcl/forge-site-parser": "*"
     }
   }
 }
