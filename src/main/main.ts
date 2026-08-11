@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, session } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron'
 import { isDev } from './utils'
 import path from 'path'
 import os from 'os'
@@ -44,7 +44,7 @@ function createWindow() {
   // Open external links in the user's normal browser rather than inside Electron.
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:\/\//i.test(url)) {
-      void session.defaultSession.loadExtension?.('')
+      void shell.openExternal(url)
     }
     return { action: 'deny' }
   })
