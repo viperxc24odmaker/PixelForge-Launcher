@@ -4,8 +4,8 @@ import {
   install,
   getForgeVersionList,
   installForge,
-  getFabricArtifactList,
-  installFabric
+  getLoaderArtifactListFor,
+  installFabricByLoaderArtifact
 } from '@xmcl/installer'
 import { readdir, readFile, writeFile, mkdir, rm } from 'fs/promises'
 import { existsSync } from 'fs'
@@ -216,13 +216,13 @@ export async function installLoader(
       }
       await installForge(match, instance.path)
     } else if (loader === 'fabric') {
-      const fabricVersions = await getFabricArtifactList()
-      const match = fabricVersions[0] // latest loader build
+      const fabricVersions = await getLoaderArtifactListFor(mcVersion, {})
+      const match = fabricVersions[0] // latest loader build for this Minecraft version
       if (!match) {
-        console.warn('No Fabric loader versions available')
+        console.warn(`No Fabric loader versions found for Minecraft ${mcVersion}`)
         return false
       }
-      await installFabric(match, instance.path)
+      await installFabricByLoaderArtifact(match, instance.path)
     }
     return true
   } catch (error) {
