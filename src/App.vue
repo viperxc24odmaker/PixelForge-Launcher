@@ -1,6 +1,7 @@
 <template>
   <v-app theme="dark" class="bg-dark">
     <v-app-bar color="surface">
+      <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
       <v-app-bar-title>PixelForge Launcher</v-app-bar-title>
       <v-spacer></v-spacer>
       <v-btn icon to="/settings">
@@ -8,7 +9,7 @@
       </v-btn>
     </v-app-bar>
 
-    <v-navigation-drawer v-model="drawer" temporary>
+    <v-navigation-drawer v-model="drawer">
       <v-list>
         <v-list-item to="/" title="Home" prepend-icon="mdi-home"></v-list-item>
         <v-list-item to="/instances" title="Instances" prepend-icon="mdi-folder"></v-list-item>

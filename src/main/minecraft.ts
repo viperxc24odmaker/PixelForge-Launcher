@@ -1,4 +1,4 @@
-import { launch, Version, MinecraftLocation } from '@xmcl/core'
+import { launch, MinecraftLocation } from '@xmcl/core'
 import {
   getVersionList,
   install,
@@ -7,7 +7,7 @@ import {
   getFabricArtifactList,
   installFabric
 } from '@xmcl/installer'
-import { readdir, readFile, writeFile, mkdir } from 'fs/promises'
+import { readdir, readFile, writeFile, mkdir, rm } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
 import os from 'os'
@@ -169,7 +169,6 @@ export async function deleteInstance(id: string): Promise<boolean> {
     const instance = await getInstanceById(id)
     if (!instance) return false
 
-    const { rm } = await import('fs/promises')
     await rm(instance.path, { recursive: true, force: true })
     return true
   } catch (error) {

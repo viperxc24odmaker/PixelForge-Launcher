@@ -65,8 +65,8 @@
         cols="12"
         sm="6"
         md="4"
-        :ref="el => { if (el) instanceCardsRef[idx] = el as HTMLElement }"
       >
+        <div :ref="el => { if (el) instanceCardsRef[idx] = el as HTMLElement }">
         <v-card
           color="surface"
           class="h-100 d-flex flex-column instance-card"
@@ -124,6 +124,7 @@
             </v-btn>
           </v-card-actions>
         </v-card>
+        </div>
       </v-col>
     </v-row>
 
@@ -268,12 +269,12 @@ function onButtonHoverOut(e: Event) {
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
 
-  &:hover {
-    transform: translateY(-12px);
-    box-shadow: 0 30px 60px rgba(124, 58, 237, 0.25),
-                0 0 40px rgba(124, 58, 237, 0.15);
-  }
+.instance-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 30px 60px rgba(124, 58, 237, 0.25),
+              0 0 40px rgba(124, 58, 237, 0.15);
 }
 
 .instance-card.selected {
@@ -291,10 +292,10 @@ function onButtonHoverOut(e: Event) {
 
 .launch-btn {
   transition: all 0.3s ease;
+}
 
-  &:hover:not(:disabled) {
-    transform: scale(1.05);
-    box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
-  }
+.launch-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
 }
 </style>

@@ -2,14 +2,16 @@
   <v-container fluid class="pa-6 h-100" style="overflow-y: auto">
     <!-- Welcome Banner with Animation -->
     <v-row class="mb-6">
-      <v-col cols="12" ref="bannerRef">
-        <v-card color="primary" class="welcome-card glow-effect">
-          <v-card-title class="text-h4 gradient-text">Welcome to PixelForge Launcher</v-card-title>
-          <v-card-text>
-            <p class="mb-2 text-subtitle2">Everything you need to play Minecraft, without the clutter.</p>
-            <p class="text-caption">Launch your favorite instances, manage mods, and enjoy a clean gaming experience.</p>
-          </v-card-text>
-        </v-card>
+      <v-col cols="12">
+        <div ref="bannerRef">
+          <v-card color="primary" class="welcome-card glow-effect">
+            <v-card-title class="text-h4 gradient-text">Welcome to PixelForge Launcher</v-card-title>
+            <v-card-text>
+              <p class="mb-2 text-subtitle2">Everything you need to play Minecraft, without the clutter.</p>
+              <p class="text-caption">Launch your favorite instances, manage mods, and enjoy a clean gaming experience.</p>
+            </v-card-text>
+          </v-card>
+        </div>
       </v-col>
     </v-row>
 
@@ -26,8 +28,8 @@
                 :key="instance.id"
                 cols="12"
                 sm="6"
-                ref="quickLaunchRef"
               >
+                <div :ref="el => { if (el) quickLaunchRef[idx] = el as HTMLElement }">
                 <v-btn
                   block
                   variant="tonal"
@@ -50,6 +52,7 @@
                   </v-chip>
                   <v-tooltip activator="parent">{{ instance.loader }}</v-tooltip>
                 </v-btn>
+                </div>
               </v-col>
               <v-col cols="12" v-if="minecraftStore.instances.length > 3">
                 <v-btn
@@ -78,7 +81,7 @@
           <v-card-title class="text-h6">⚡ Quick Actions</v-card-title>
           <v-card-text>
             <v-row>
-              <v-col cols="6" sm="4" ref="actionsRef">
+              <v-col cols="6" sm="4">
                 <v-btn
                   block
                   variant="tonal"
@@ -192,7 +195,6 @@ const { animateCardIn, animateButtonHover, animateButtonHoverOut, animateListIte
 
 const bannerRef = ref<HTMLElement | null>(null)
 const quickLaunchRef = ref<HTMLElement[]>([])
-const actionsRef = ref<HTMLElement | null>(null)
 
 onMounted(async () => {
   await minecraftStore.fetchInstances()

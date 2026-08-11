@@ -1,4 +1,3 @@
-import { ref } from 'vue'
 import gsap from 'gsap'
 
 export function useAnimations() {
@@ -136,11 +135,11 @@ export function useAnimations() {
   // Glow pulse
   const animateGlowPulse = (element: Element) => {
     gsap.to(element, {
-      boxShadow: [
-        '0 0 10px rgba(124, 58, 237, 0.3)',
-        '0 0 30px rgba(124, 58, 237, 0.8)',
-        '0 0 10px rgba(124, 58, 237, 0.3)'
-      ],
+      keyframes: {
+        '0%': { boxShadow: '0 0 10px rgba(124, 58, 237, 0.3)' },
+        '50%': { boxShadow: '0 0 30px rgba(124, 58, 237, 0.8)' },
+        '100%': { boxShadow: '0 0 10px rgba(124, 58, 237, 0.3)' }
+      },
       duration: 2,
       repeat: -1,
       ease: 'sine.inOut'

@@ -37,24 +37,24 @@ export const globalStyles = `
     border: 1px solid rgba(255, 255, 255, 0.05);
     position: relative;
     overflow: hidden;
+  }
 
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: radial-gradient(circle at top-left, rgba(124, 58, 237, 0.1), transparent 80%);
-      pointer-events: none;
-    }
+  .v-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at top-left, rgba(124, 58, 237, 0.1), transparent 80%);
+    pointer-events: none;
+  }
 
-    &:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 25px 50px rgba(124, 58, 237, 0.2),
-                  0 10px 20px rgba(6, 182, 212, 0.1);
-      border-color: rgba(124, 58, 237, 0.3);
-    }
+  .v-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 25px 50px rgba(124, 58, 237, 0.2),
+                0 10px 20px rgba(6, 182, 212, 0.1);
+    border-color: rgba(124, 58, 237, 0.3);
   }
 
   /* Button animations */
@@ -62,67 +62,65 @@ export const globalStyles = `
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease !important;
+  }
 
-    &::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.3);
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
-    }
+  .v-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
 
-    &:hover::before {
-      width: 300px;
-      height: 300px;
-    }
+  .v-btn:hover::before {
+    width: 300px;
+    height: 300px;
+  }
 
-    &:active {
-      transform: scale(0.95);
-    }
+  .v-btn:active {
+    transform: scale(0.95);
   }
 
   .v-btn.v-btn--color-primary {
     background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
     box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+  }
 
-    &:hover {
-      box-shadow: 0 15px 40px rgba(124, 58, 237, 0.5);
-    }
+  .v-btn.v-btn--color-primary:hover {
+    box-shadow: 0 15px 40px rgba(124, 58, 237, 0.5);
   }
 
   .v-btn.v-btn--color-secondary {
     background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
     box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+  }
 
-    &:hover {
-      box-shadow: 0 15px 40px rgba(6, 182, 212, 0.5);
-    }
+  .v-btn.v-btn--color-secondary:hover {
+    box-shadow: 0 15px 40px rgba(6, 182, 212, 0.5);
   }
 
   /* Input field depth */
-  .v-field {
-    .v-field__control {
-      background: rgba(255, 255, 255, 0.02) !important;
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
-      backdrop-filter: blur(8px);
-      transition: all 0.3s ease;
+  .v-field .v-field__control {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+  }
 
-      &:hover {
-        background: rgba(255, 255, 255, 0.04) !important;
-        border-color: rgba(124, 58, 237, 0.3) !important;
-      }
+  .v-field .v-field__control:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(124, 58, 237, 0.3) !important;
+  }
 
-      &:focus-within {
-        background: rgba(124, 58, 237, 0.1) !important;
-        border-color: rgba(124, 58, 237, 0.6) !important;
-        box-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
-      }
-    }
+  .v-field .v-field__control:focus-within {
+    background: rgba(124, 58, 237, 0.1) !important;
+    border-color: rgba(124, 58, 237, 0.6) !important;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
   }
 
   /* Dialog overlay */
@@ -133,31 +131,29 @@ export const globalStyles = `
   /* List item hover */
   .v-list-item {
     transition: all 0.3s ease;
+  }
 
-    &:hover {
-      background: rgba(124, 58, 237, 0.1);
-      transform: translateX(4px);
-    }
+  .v-list-item:hover {
+    background: rgba(124, 58, 237, 0.1);
+    transform: translateX(4px);
   }
 
   /* Tab animations */
-  .v-tabs {
-    .v-tabs__nav {
-      background: rgba(0, 0, 0, 0.2);
-      border-bottom: 1px solid rgba(124, 58, 237, 0.1);
-    }
+  .v-tabs .v-tabs__nav {
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+  }
 
-    .v-tab {
-      transition: all 0.3s ease;
+  .v-tabs .v-tab {
+    transition: all 0.3s ease;
+  }
 
-      &:hover {
-        background: rgba(124, 58, 237, 0.1);
-      }
+  .v-tabs .v-tab:hover {
+    background: rgba(124, 58, 237, 0.1);
+  }
 
-      &.v-tab--selected {
-        color: #7c3aed;
-      }
-    }
+  .v-tabs .v-tab.v-tab--selected {
+    color: #7c3aed;
   }
 
   /* Chip styling */
@@ -165,12 +161,12 @@ export const globalStyles = `
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
+  }
 
-    &:hover {
-      background: rgba(124, 58, 237, 0.2) !important;
-      border-color: rgba(124, 58, 237, 0.4);
-      transform: scale(1.05);
-    }
+  .v-chip:hover {
+    background: rgba(124, 58, 237, 0.2) !important;
+    border-color: rgba(124, 58, 237, 0.4);
+    transform: scale(1.05);
   }
 
   /* Badge animations */
