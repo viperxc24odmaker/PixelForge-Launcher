@@ -46,7 +46,61 @@ function detectJava(): string {
   } catch {
     // fall through
   }
-  return 'java' // fallback, let launch() surface the real error if missing
+  return 'java'
+}
+
+async function resolveLaunchVersion(instance: MinecraftInstance): Promise<string> {
+  const versionsDir = path.join(instance.path, 'versions')
+  const exactDir = path.join(versionsDir, instance.version)
+  const exactJson = path.join(exactDir, `${instance.version}.json`)
+
+  if (existsSync(exactJson)) {
+    return instance.version
+  }
+
+  if (!existsSync(versionsDir)) {
+    throw new Error(`Minecraft is not installed for this instance. Expected: ${versionsDir}`)
+  }
+
+  const entries = await readdir(versionsDir, { withFileTypes: true })
+  const candidates: string[] = []
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue
+
+    const id = entry.name
+    if (id === instance.version) continue
+
+    const jsonPath = path.join(versionsDir, id, `${id}.json`)
+    if (!existsSync(jsonPath)) continue
+
+    try {
+      const metadata = JSON.parse(await readFile(jsonPath, 'utf-8'))
+      const inheritsFrom = metadata?.inheritsFrom
+      const hasBaseVersion = inheritsFrom === instance.version || id.includes(instance.version)
+      const hasLoader = instance.loader === 'forge'
+        ? /forge/i.test(id)
+        : instance.loader === 'fabric'
+          ? /fabric/i.test(id)
+          : false
+
+      if (hasBaseVersion && hasLoader) {
+        candidates.push(id)
+      }
+    } catch {
+      // Ignore malformed version profiles.
+    }
+  }
+
+  if (candidates.length > 0) {
+    candidates.sort()
+    return candidates[candidates.length - 1]
+  }
+
+  throw new Error(
+    `No installed ${instance.loader} profile was found for Minecraft ${instance.version}. ` +
+    'Reinstall the instance/loader before launching.'
+  )
 }
 
 export async function launchMinecraft(instanceId: string): Promise<void> {
@@ -55,18 +109,20 @@ export async function launchMinecraft(instanceId: string): Promise<void> {
 
   const javaPath = detectJava()
   const gamePath: MinecraftLocation = instance.path
+  const launchVersion = await resolveLaunchVersion(instance)
 
   try {
     const proc = await launch({
       gamePath,
       javaPath,
-      version: instance.version,
+      version: launchVersion,
       minMemory: 1024,
-      maxMemory: 4096
+      maxMemory: 4096,
+      extraExecOption: { detached: true }
     })
-    console.log(`Launched Minecraft: PID ${proc.pid}`)
+    console.log(`Launched Minecraft ${launchVersion}: PID ${proc.pid}`)
   } catch (error) {
-    throw new Error(`Failed to launch: ${(error as Error).message}`)
+    throw new Error(`Failed to launch Minecraft ${launchVersion}: ${(error as Error).message}`)
   }
 }
 
@@ -126,17 +182,16 @@ export async function createInstance(config: {
   if (!existsSync(modsPath)) await mkdir(modsPath, { recursive: true })
   if (!existsSync(configPath)) await mkdir(configPath, { recursive: true })
 
-  // Download the Minecraft version into this instance's directory
   try {
     const versionList = await getVersionList()
     const target = versionList.versions.find(v => v.id === config.version)
     if (target) {
       await install(target, instancePath)
     } else {
-      console.warn(`Version ${config.version} not found in version manifest`)
+      throw new Error(`Version ${config.version} not found in version manifest`)
     }
   } catch (error) {
-    console.warn(`Version installation skipped: ${(error as Error).message}`)
+    throw new Error(`Failed to install Minecraft ${config.version}: ${(error as Error).message}`)
   }
 
   const instance: MinecraftInstance = {
@@ -152,12 +207,10 @@ export async function createInstance(config: {
   const configFile = path.join(instancePath, 'instance.json')
   await writeFile(configFile, JSON.stringify(instance, null, 2))
 
-  // Install loader on top of vanilla, if requested
   if (config.loader === 'forge' || config.loader === 'fabric') {
-    try {
-      await installLoader(instanceId, config.loader, config.version)
-    } catch (error) {
-      console.warn(`Loader installation skipped: ${(error as Error).message}`)
+    const installed = await installLoader(instanceId, config.loader, config.version)
+    if (!installed) {
+      throw new Error(`Failed to install ${config.loader} for Minecraft ${config.version}`)
     }
   }
 
@@ -217,7 +270,7 @@ export async function installLoader(
       await installForge(match, instance.path)
     } else if (loader === 'fabric') {
       const fabricVersions = await getLoaderArtifactListFor(mcVersion, {})
-      const match = fabricVersions[0] // latest loader build for this Minecraft version
+      const match = fabricVersions[0]
       if (!match) {
         console.warn(`No Fabric loader versions found for Minecraft ${mcVersion}`)
         return false
