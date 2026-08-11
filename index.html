@@ -3,10 +3,270 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f0f23" />
   <title>PixelForge Launcher</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f0f23;
+      color: #f7f7ff;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: #0f0f23; }
+    body { min-height: 100vh; overflow: hidden; }
+
+    #app {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(124, 58, 237, .18), transparent 32%),
+        radial-gradient(circle at 85% 15%, rgba(6, 182, 212, .12), transparent 28%),
+        linear-gradient(180deg, #11112a 0%, #0f0f23 100%);
+    }
+
+    .pixelforge-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 250px 1fr;
+    }
+
+    .sidebar {
+      padding: 24px 16px;
+      border-right: 1px solid rgba(255, 255, 255, .08);
+      background: rgba(13, 13, 32, .88);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 10px 24px;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #7c3aed, #06b6d4);
+      box-shadow: 0 0 30px rgba(124, 58, 237, .28);
+      font-size: 20px;
+    }
+
+    .nav { display: grid; gap: 8px; }
+    .nav a, .hero-actions a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      color: #c6c6d8;
+      transition: transform .18s ease, background .18s ease, color .18s ease;
+    }
+
+    .nav a:hover {
+      transform: translateX(3px);
+      background: rgba(124, 58, 237, .14);
+      color: #fff;
+    }
+
+    .content { padding: 28px; overflow: auto; }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      color: #9c9cb5;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+    }
+
+    h1 { margin: 6px 0 0; font-size: clamp(28px, 4vw, 46px); line-height: 1.05; }
+    .muted { color: #a5a5bb; }
+
+    .hero {
+      padding: 30px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(6,182,212,.85));
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .26), 0 0 50px rgba(124,58,237,.18);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -12% -55% auto;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.08);
+    }
+
+    .hero h2 { margin: 0 0 8px; font-size: 30px; }
+    .hero p { max-width: 650px; margin: 0; color: rgba(255,255,255,.84); }
+
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.1);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .18s ease, background .18s ease;
+    }
+
+    .btn:hover { transform: translateY(-2px); background: rgba(255,255,255,.16); }
+    .btn.primary { background: #fff; color: #241148; border-color: transparent; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .card {
+      padding: 22px;
+      border-radius: 18px;
+      background: rgba(26,26,62,.84);
+      border: 1px solid rgba(255,255,255,.07);
+      box-shadow: 0 18px 45px rgba(0,0,0,.14);
+    }
+
+    .card .icon { font-size: 28px; margin-bottom: 12px; }
+    .card h3 { margin: 0 0 6px; }
+    .card p { margin: 0 0 16px; }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      background: #0f0f23;
+      z-index: 10;
+      animation: fadeOut .35s ease 1.4s forwards;
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 3px solid rgba(255,255,255,.12);
+      border-top-color: #7c3aed;
+      border-right-color: #06b6d4;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+
+    noscript {
+      display: block;
+      padding: 16px;
+      margin: 20px;
+      border-radius: 12px;
+      background: #34113a;
+      color: #ffd7f5;
+    }
+
+    @media (max-width: 900px) {
+      .pixelforge-shell { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .grid { grid-template-columns: 1fr; }
+      .content { padding: 18px; }
+    }
+  </style>
 </head>
 <body>
-  <div id="app"></div>
+  <div id="app">
+    <div class="loading" aria-label="Loading PixelForge Launcher">
+      <div class="spinner"></div>
+    </div>
+
+    <div class="pixelforge-shell" aria-label="PixelForge Launcher shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">✦</div>
+          <div>PixelForge<br><span class="muted">Launcher</span></div>
+        </div>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a href="#/">⌂ <span>Home</span></a>
+          <a href="#/instances">▣ <span>Instances</span></a>
+          <a href="#/mods">◆ <span>Mods</span></a>
+          <a href="#/settings">⚙ <span>Settings</span></a>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <div class="topbar">
+          <div>
+            <div class="eyebrow">Minecraft Launcher</div>
+            <h1>Welcome to PixelForge</h1>
+          </div>
+        </div>
+
+        <section class="hero">
+          <h2>Everything you need to play Minecraft.</h2>
+          <p>Create instances, manage Forge & Fabric profiles, and launch your game from one clean workspace.</p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#/instances">▶ Open Instances</a>
+            <a class="btn" href="#/mods">◆ Manage Mods</a>
+            <a class="btn" href="#/settings">⚙ Settings</a>
+          </div>
+        </section>
+
+        <section class="grid">
+          <article class="card">
+            <div class="icon">🚀</div>
+            <h3>Quick Launch</h3>
+            <p class="muted">Jump straight into your configured Minecraft instances.</p>
+            <a class="btn" href="#/instances">Launch an Instance</a>
+          </article>
+
+          <article class="card">
+            <div class="icon">🧩</div>
+            <h3>Mods</h3>
+            <p class="muted">Manage your modded setups without leaving PixelForge.</p>
+            <a class="btn" href="#/mods">Open Mod Manager</a>
+          </article>
+
+          <article class="card">
+            <div class="icon">⚙</div>
+            <h3>Settings</h3>
+            <p class="muted">Configure launcher preferences and system options.</p>
+            <a class="btn" href="#/settings">Open Settings</a>
+          </article>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <noscript>PixelForge Launcher requires JavaScript to load the full Vue interface.</noscript>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
