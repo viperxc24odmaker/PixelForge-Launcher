@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, session } from 'electron'
 import { isDev } from './utils'
 import path from 'path'
 import os from 'os'
@@ -19,11 +19,34 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
+    minWidth: 1000,
+    minHeight: 700,
+    show: false,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      sandbox: false
     }
+  })
+
+  // Keep PixelForge looking like a standalone desktop app instead of
+  // exposing Electron's default File/Edit/View/Window/Help menu.
+  mainWindow.setMenuBarVisibility(false)
+  Menu.setApplicationMenu(null)
+
+  // Don't allow the renderer to navigate away from the launcher UI.
+  mainWindow.webContents.on('will-navigate', (event) => {
+    event.preventDefault()
+  })
+
+  // Open external links in the user's normal browser rather than inside Electron.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:\/\//i.test(url)) {
+      void session.defaultSession.loadExtension?.('')
+    }
+    return { action: 'deny' }
   })
 
   const startUrl = isDev
@@ -31,6 +54,10 @@ function createWindow() {
     : `file://${path.join(__dirname, '../renderer/index.html')}`
 
   mainWindow.loadURL(startUrl)
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.show()
+  })
 
   if (isDev) {
     mainWindow.webContents.openDevTools()
@@ -41,7 +68,9 @@ function createWindow() {
   })
 }
 
-app.on('ready', createWindow)
+app.whenReady().then(() => {
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -128,7 +157,7 @@ ipcMain.handle('system:getInfo', async () => {
     try {
       const result = spawnSync('java', ['-version'], { encoding: 'utf-8' })
       const output = result.stderr || result.stdout || ''
-      const match = output.match(/version "(.+?)"/)
+      const match = output.match(/version \"(.+?)\"/)
       javaVersion = match ? match[1] : 'Detected (version unknown)'
     } catch {
       javaVersion = 'Not detected'
