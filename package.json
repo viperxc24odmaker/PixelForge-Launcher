@@ -21,7 +21,7 @@
     "@xmcl/core": "^2.0.0",
     "@xmcl/curseforge": "^2.0.0",
     "@xmcl/game-data": "^1.0.0",
-    "@xmcl/installer": "^6.0.0",
+    "@xmcl/installer": "6.1.2",
     "@xmcl/modrinth": "^2.0.0",
     "@xmcl/nbt": "^3.0.0",
     "@xmcl/resourcepack": "^1.0.0",
@@ -93,4 +93,3 @@
     }
   }
 }
-
