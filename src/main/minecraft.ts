@@ -1,14 +1,20 @@
-import { launch, LaunchOption } from '@xmcl/core'
-import { installForge, installFabric, installMinecraft, listMinecraft, getVersions } from '@xmcl/installer'
+import { launch, Version, MinecraftLocation } from '@xmcl/core'
+import {
+  getVersionList,
+  install,
+  getForgeVersionList,
+  installForge,
+  getFabricArtifactList,
+  installFabric
+} from '@xmcl/installer'
 import { readdir, readFile, writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
 import os from 'os'
-import { spawn } from 'child_process'
+import { spawnSync } from 'child_process'
 
 const LAUNCHER_DATA = path.join(os.homedir(), '.pixelforge')
 const INSTANCES_DIR = path.join(LAUNCHER_DATA, 'instances')
-const VERSIONS_DIR = path.join(LAUNCHER_DATA, 'versions')
 
 export interface MinecraftInstance {
   id: string
@@ -22,64 +28,51 @@ export interface MinecraftInstance {
 
 export interface VersionInfo {
   id: string
-  type: 'release' | 'snapshot'
+  type: string
   releaseTime: string
 }
 
-// Initialize directories
 async function ensureDirectories(): Promise<void> {
   if (!existsSync(LAUNCHER_DATA)) await mkdir(LAUNCHER_DATA, { recursive: true })
   if (!existsSync(INSTANCES_DIR)) await mkdir(INSTANCES_DIR, { recursive: true })
-  if (!existsSync(VERSIONS_DIR)) await mkdir(VERSIONS_DIR, { recursive: true })
+}
+
+function detectJava(): string {
+  try {
+    const result = spawnSync('java', ['-version'], { encoding: 'utf-8' })
+    if (result.status === 0 || result.stderr) {
+      return 'java'
+    }
+  } catch {
+    // fall through
+  }
+  return 'java' // fallback, let launch() surface the real error if missing
 }
 
 export async function launchMinecraft(instanceId: string): Promise<void> {
   const instance = await getInstanceById(instanceId)
   if (!instance) throw new Error('Instance not found')
 
-  // Auto-detect Java
-  const javaPath = await detectJava()
-  if (!javaPath) throw new Error('Java not found. Please install Java 21 or later.')
-
-  const launchOpts: LaunchOption = {
-    gameDirectory: instance.path,
-    version: instance.version,
-    versionMeta: {
-      id: instance.version,
-      type: 'release'
-    },
-    javaPath: javaPath,
-    memory: {
-      min: 1024,
-      max: 4096
-    }
-  }
+  const javaPath = detectJava()
+  const gamePath: MinecraftLocation = instance.path
 
   try {
-    const child = await launch(launchOpts)
-    console.log(`Launched Minecraft: PID ${child.pid}`)
+    const proc = await launch({
+      gamePath,
+      javaPath,
+      version: instance.version,
+      minMemory: 1024,
+      maxMemory: 4096
+    })
+    console.log(`Launched Minecraft: PID ${proc.pid}`)
   } catch (error) {
     throw new Error(`Failed to launch: ${(error as Error).message}`)
   }
 }
 
-async function detectJava(): Promise<string | null> {
-  const candidates = ['java', 'java.exe']
-  
-  for (const java of candidates) {
-    try {
-      const proc = spawn(java, ['-version'], { stdio: 'pipe' })
-      return java
-    } catch {
-      continue
-    }
-  }
-  return null
-}
-
 export async function getInstances(): Promise<MinecraftInstance[]> {
   await ensureDirectories()
-  
+
   try {
     const entries = await readdir(INSTANCES_DIR, { withFileTypes: true })
     const instances: MinecraftInstance[] = []
@@ -96,7 +89,7 @@ export async function getInstances(): Promise<MinecraftInstance[]> {
             path: path.join(INSTANCES_DIR, entry.name)
           })
         } catch {
-          // Skip if no valid config
+          // Skip folders without a valid instance.json
         }
       }
     }
@@ -127,24 +120,25 @@ export async function createInstance(config: {
     await mkdir(instancePath, { recursive: true })
   }
 
-  // Create .minecraft directory structure
   const modsPath = path.join(instancePath, 'mods')
   const configPath = path.join(instancePath, 'config')
-  
+
   if (!existsSync(modsPath)) await mkdir(modsPath, { recursive: true })
   if (!existsSync(configPath)) await mkdir(configPath, { recursive: true })
 
-  // Download version if not exists
+  // Download the Minecraft version into this instance's directory
   try {
-    await installMinecraft({
-      destination: instancePath,
-      version: config.version
-    })
+    const versionList = await getVersionList()
+    const target = versionList.versions.find(v => v.id === config.version)
+    if (target) {
+      await install(target, instancePath)
+    } else {
+      console.warn(`Version ${config.version} not found in version manifest`)
+    }
   } catch (error) {
     console.warn(`Version installation skipped: ${(error as Error).message}`)
   }
 
-  // Create instance config
   const instance: MinecraftInstance = {
     id: instanceId,
     name: config.name,
@@ -158,6 +152,15 @@ export async function createInstance(config: {
   const configFile = path.join(instancePath, 'instance.json')
   await writeFile(configFile, JSON.stringify(instance, null, 2))
 
+  // Install loader on top of vanilla, if requested
+  if (config.loader === 'forge' || config.loader === 'fabric') {
+    try {
+      await installLoader(instanceId, config.loader, config.version)
+    } catch (error) {
+      console.warn(`Loader installation skipped: ${(error as Error).message}`)
+    }
+  }
+
   return instance
 }
 
@@ -166,8 +169,8 @@ export async function deleteInstance(id: string): Promise<boolean> {
     const instance = await getInstanceById(id)
     if (!instance) return false
 
-    // Note: In production, use fs.rm with recursive: true
-    console.log(`Would delete instance: ${instance.path}`)
+    const { rm } = await import('fs/promises')
+    await rm(instance.path, { recursive: true, force: true })
     return true
   } catch (error) {
     console.error('Failed to delete instance:', error)
@@ -177,12 +180,15 @@ export async function deleteInstance(id: string): Promise<boolean> {
 
 export async function listVersions(): Promise<VersionInfo[]> {
   try {
-    const versions = await getVersions(VERSIONS_DIR)
-    return versions.map(v => ({
-      id: v.id,
-      type: v.type as 'release' | 'snapshot',
-      releaseTime: v.releaseTime
-    }))
+    const versionList = await getVersionList()
+    return versionList.versions
+      .filter(v => v.type === 'release')
+      .slice(0, 50)
+      .map(v => ({
+        id: v.id,
+        type: v.type,
+        releaseTime: v.releaseTime
+      }))
   } catch (error) {
     console.error('Failed to list versions:', error)
     return [
@@ -196,22 +202,28 @@ export async function listVersions(): Promise<VersionInfo[]> {
 export async function installLoader(
   instanceId: string,
   loader: 'forge' | 'fabric',
-  version: string
+  mcVersion: string
 ): Promise<boolean> {
   const instance = await getInstanceById(instanceId)
   if (!instance) return false
 
   try {
     if (loader === 'forge') {
-      await installForge({
-        destination: instance.path,
-        version: version
-      })
+      const forgeVersions = await getForgeVersionList()
+      const match = forgeVersions.versions.find(v => v.mcversion === mcVersion)
+      if (!match) {
+        console.warn(`No Forge version found for Minecraft ${mcVersion}`)
+        return false
+      }
+      await installForge(match, instance.path)
     } else if (loader === 'fabric') {
-      await installFabric({
-        destination: instance.path,
-        version: version
-      })
+      const fabricVersions = await getFabricArtifactList()
+      const match = fabricVersions[0] // latest loader build
+      if (!match) {
+        console.warn('No Fabric loader versions available')
+        return false
+      }
+      await installFabric(match, instance.path)
     }
     return true
   } catch (error) {
